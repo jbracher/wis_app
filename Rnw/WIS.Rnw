@@ -1,0 +1,140 @@
+\documentclass{article}
+
+\begin{document}
+
+<<preparations, echo=FALSE>>=
+library(RColorBrewer) # colour palettes
+
+# read in funtions:
+source("../functions.R")
+
+# location settings:
+invisible(Sys.setlocale(category = "LC_TIME", locale = "en_US.UTF8"))
+
+# the path containing the forecast hub data:
+path_hub <- "../../covid19-forecast-hub"
+@
+
+<<specify_team, echo=FALSE>>=
+mod <- "COVIDhub-ensemble" # the model for which to show results
+mod_string <- gsub("_", " ", mod) # this is required to include the model name in the Latex doc without trouble if it contains "_"
+loc <- "01" # the location for which to show results
+@
+
+\title{Evaluation sheet for \Sexpr{mod_string}, \Sexpr{loc}}
+\maketitle
+
+
+<<read_truth_data, echo=FALSE>>=
+# read in truth data:
+truth <- read.csv(paste0(path_hub, "/data-truth/truth-Cumulative Deaths.csv"),
+                  colClasses = c(location = "character", date = "Date"))
+truth <- subset(truth, location == loc)
+@
+
+<<read_forecast_data, echo=FALSE, cache=FALSE>>=
+# the directory where the respective forecasts are stored:
+dir_forecasts <- paste0(path_hub, "/data-processed/", mod)
+# select csv fiels from this directory:
+forecast_files <- list.files(dir_forecasts)
+forecast_files <- forecast_files[grepl(".csv", forecast_files)]
+
+# choose which ones need to be included in the evaluation:
+forecast_dates <- get_date_from_filename(forecast_files)
+relevant_forecast_dates <- choose_relevant_dates(forecast_dates)
+relevant_forecast_files <- forecast_files[forecast_dates %in% relevant_forecast_dates]
+
+# read in one through four week ahead forecasts from each file (this takes a little while):
+forecasts <- read.csv(paste0(dir_forecasts, "/", relevant_forecast_files[1]), stringsAsFactors = FALSE,
+                      colClasses = c(location = "character", forecast_date = "Date", target_end_date = "Date"))
+forecasts <- subset(forecasts, target %in% paste(1:4, "wk ahead cum death") & location == loc)
+for(i in 2:length(relevant_forecast_files)){
+  to_add <- read.csv(paste0(dir_forecasts, "/", relevant_forecast_files[i]), stringsAsFactors = FALSE,
+                     colClasses = c(location = "character", forecast_date = "Date", target_end_date = "Date"))
+  forecasts <- rbind(forecasts,
+                     subset(to_add, target %in% paste(1:4, "wk ahead cum death") & location == loc))
+}
+@
+
+<<plot_1_wk_ahead, echo=FALSE, fig.width=6, fig.height=7>>=
+# Plot for one-week-ahead forecasts:
+layout(matrix(c(1, 1, 1,
+                2, 2, 2,
+                3, 4, 5), ncol = 3, byrow = TRUE))
+par(mar = c(4, 6, 3, 1))
+par(las = 1)
+
+# compute scores:
+wis_tab <- wis_table(forecasts = forecasts, truth = truth)
+ae_tab <- ae_table(forecasts = forecasts, truth = truth)
+
+# determine ylim:
+yl <- c(0, max(forecasts[forecasts$location == loc, ]$value, na.rm = TRUE))
+yl_scores <- c(0, 1.5*max(wis_tab$wis, na.rm = TRUE))
+
+plot_forecast(forecasts = forecasts, target = "1 wk ahead cum death", truth = truth, ylim = yl)
+title("1 wk ahead cum death")
+plot_scores(wis_tab = wis_tab, ae_tab = ae_tab, target = "1 wk ahead cum death", ylim = yl_scores)
+pit_hist(wis_tab = wis_tab, target = "1 wk ahead cum death")
+coverage_plot(wis_tab = wis_tab, target = "1 wk ahead cum death")
+plot_average_scores(wis_tab = wis_tab, ae_tab = ae_tab,
+                    target = "1 wk ahead cum death", ylim = yl_scores)
+@
+
+
+<<plot_2_wk_ahead, echo=FALSE, fig.width=6, fig.height=7>>=
+# Plot for one-week-ahead forecasts:
+layout(matrix(c(1, 1, 1,
+                2, 2, 2,
+                3, 4, 5), ncol = 3, byrow = TRUE))
+par(mar = c(4, 6, 3, 1))
+par(las = 1)
+
+
+plot_forecast(forecasts = forecasts, target = "2 wk ahead cum death", truth = truth, ylim = yl)
+title("2 wk ahead cum death")
+plot_scores(wis_tab = wis_tab, ae_tab = ae_tab, target = "2 wk ahead cum death", ylim = yl_scores)
+pit_hist(wis_tab = wis_tab, target = "2 wk ahead cum death")
+coverage_plot(wis_tab = wis_tab, target = "2 wk ahead cum death")
+plot_average_scores(wis_tab = wis_tab, ae_tab = ae_tab,
+                    target = "2 wk ahead cum death", ylim = yl_scores)
+@
+
+
+<<plot_3_wk_ahead, echo=FALSE, fig.width=6, fig.height=7>>=
+# Plot for one-week-ahead forecasts:
+layout(matrix(c(1, 1, 1,
+                2, 2, 2,
+                3, 4, 5), ncol = 3, byrow = TRUE))
+par(mar = c(4, 6, 3, 1))
+par(las = 1)
+
+plot_forecast(forecasts = forecasts, target = "3 wk ahead cum death", truth = truth, ylim = yl)
+title("3 wk ahead cum death")
+plot_scores(wis_tab = wis_tab, ae_tab = ae_tab, target = "3 wk ahead cum death", ylim = yl_scores)
+pit_hist(wis_tab = wis_tab, target = "3 wk ahead cum death")
+coverage_plot(wis_tab = wis_tab, target = "3 wk ahead cum death")
+plot_average_scores(wis_tab = wis_tab, ae_tab = ae_tab,
+                    target = "3 wk ahead cum death", ylim = yl_scores)
+@
+
+
+<<plot_4_wk_ahead, echo=FALSE, fig.width=6, fig.height=7>>=
+# Plot for one-week-ahead forecasts:
+layout(matrix(c(1, 1, 1,
+                2, 2, 2,
+                3, 4, 5), ncol = 3, byrow = TRUE))
+par(mar = c(4, 6, 3, 1))
+par(las = 1)
+
+plot_forecast(forecasts = forecasts, target = "4 wk ahead cum death", truth = truth, ylim = yl)
+title("4 wk ahead cum death")
+plot_scores(wis_tab = wis_tab, ae_tab = ae_tab, target = "4 wk ahead cum death", ylim =  yl_scores)
+pit_hist(wis_tab = wis_tab, target = "4 wk ahead cum death")
+coverage_plot(wis_tab = wis_tab, target = "4 wk ahead cum death")
+plot_average_scores(wis_tab = wis_tab, ae_tab = ae_tab,
+                    target = "4 wk ahead cum death", ylim = yl_scores)
+@
+
+
+\end{document}
