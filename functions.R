@@ -156,7 +156,8 @@ plot_scores <- function(wis_tab, ae_tab, target, xlim = c(as.Date("2020-04-01"),
 
   lines(wis_tab$target_end_date, wis_tab$wis, type = "h", col = "red", lwd = 2)
   lines(wis_tab$target_end_date, wis_tab$wgt_pen_l + wis_tab$wgt_iw, type = "h", col = "royalblue", lwd = 2)
-  lines(wis_tab$target_end_date, wis_tab$wgt_pen_l, type = "h", col = "orange", lwd = 2)
+  lines(wis_tab$target_end_date[wis_tab$wgt_pen_l > 0],
+        wis_tab$wgt_pen_l[wis_tab$wgt_pen_l > 0], type = "h", col = "orange", lwd = 2)
   # points(wis_tab$target_end_date, wis_tab$wis, pch = 1, lwd = 2)
 
   points(ae_tab$target_end_date, ae_tab$ae, pch = 5)
